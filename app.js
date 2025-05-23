@@ -44,38 +44,16 @@ function createComicCard(comic) {
   title.className = "comic-title";
   title.textContent = comic.title;
   card.appendChild(title);
+
   if (comic.release_date) {
-  const date = document.createElement("div");
-  date.className = "comic-date";
-  date.textContent = comic.release_date;
-  card.appendChild(date);
-}
+    const date = document.createElement("div");
+    date.className = "comic-date";
+    date.textContent = comic.release_date;
+    card.appendChild(date);
+  }
 
-  const date = document.createElement("div");
-  date.className = "comic-date";
-  date.textContent = comic.release_date || " ";
-  card.appendChild(date);
-
-  // Interaktion: Klick vs. gedrückt halten
   let pressTimer;
   let longPress = false;
-
-  const startPress = (e) => {
-    longPress = false;
-    pressTimer = setTimeout(() => {
-      comic.read = !comic.read;
-      renderComics();
-      longPress = true;
-    }, 400);
-  };
-
-  const cancelPress = (e) => {
-    clearTimeout(pressTimer);
-  };
-
-  const handleClick = (e) => {
-    if (!longPress) showComicInfo(comic);
-  };
 
   card.addEventListener("mousedown", startPress);
   card.addEventListener("touchstart", startPress);
@@ -85,7 +63,22 @@ function createComicCard(comic) {
   card.addEventListener("touchend", cancelPress);
   card.addEventListener("touchcancel", cancelPress);
 
-  card.addEventListener("click", handleClick);
+  card.addEventListener("click", () => {
+    if (!longPress) showComicInfo(comic);
+  });
+
+  function startPress() {
+    longPress = false;
+    pressTimer = setTimeout(() => {
+      comic.read = !comic.read;
+      renderComics();
+      longPress = true;
+    }, 400);
+  }
+
+  function cancelPress() {
+    clearTimeout(pressTimer);
+  }
 
   return card;
 }

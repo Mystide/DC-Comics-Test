@@ -1,13 +1,23 @@
-
-const params = new URLSearchParams(window.location.search);
+// GitHub Gist Token + ID aus URL lesen und im localStorage speichern
 const tokenFromURL = params.get("token");
-if (tokenFromURL) {
+const gistIdFromURL = params.get("gist");
   localStorage.setItem("gistToken", tokenFromURL);
-}
+  localStorage.setItem("gistId", gistIdFromURL);
 const GITHUB_TOKEN = localStorage.getItem("gistToken");
 const GIST_ID = "f4ac4f63f8f150bde113a52246bdea28";
-let storedRead = {};
 
+function getStorageKey(c) {
+  return `${c.series || 'unknown'}_${c.issue_number || c.title}`;
+}
+
+async function loadStoredReadStatus() {
+  const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GITHUB_TOKEN}` }
+  });
+  const gist = await res.json();
+  const content = JSON.parse(gist.files['readStatus.json'].content);
+  return content;
+}
 
 async function saveStoredReadStatus(status) {
   await fetch(`https://api.github.com/gists/${GIST_ID}`, {
@@ -21,30 +31,14 @@ async function saveStoredReadStatus(status) {
         'readStatus.json': {
           content: JSON.stringify(status, null, 2)
         }
-      }
-    })
-  });
-}
-
-async function loadStoredReadStatus() {
-  const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GITHUB_TOKEN}` }
-  });
-  const gist = await res.json();
-  const content = JSON.parse(gist.files['readStatus.json'].content);
-  return content;
-}
-
-async
 
 let comicData = [];
 
+const storedRead = JSON.parse(localStorage.getItem("readComics") || "{}");
 
-function getStorageKey(c) {
   return `${c.series || 'unknown'}_${c.issue_number || c.title}`;
 }
 
-async
 
 function toggleReadByKey(key) {
   const card = document.querySelector(`.comic-card[data-key="${key}"]`);
@@ -254,39 +248,3 @@ fetch('./manifest.json')
     }
     renderComics();
   });
-
-
-async function init() {
-
-  const manifest = await fetch('./manifest.json').then(r => r.json());
-  const results = await Promise.all(manifest.map(f => fetch(f).then(r => r.json())));
-
-  comicData = results.flat();
-  for (const c of comicData) {
-    const key = getStorageKey(c);
-    if (storedRead[key]) {
-      c.read = true;
-    }
-  }
-
-  renderComics();
-}
-
-init();
-async function init() {
-  storedRead = await loadStoredReadStatus();
-
-  const manifest = await fetch('./manifest.json').then(r => r.json());
-  const results = await Promise.all(manifest.map(f => fetch(f).then(r => r.json())));
-
-  comicData = results.flat();
-  for (const c of comicData) {
-    const key = getStorageKey(c);
-    if (storedRead[key]) {
-      c.read = true;
-    }
-  }
-
-  renderComics();
-}
-init();

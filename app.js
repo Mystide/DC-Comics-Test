@@ -26,7 +26,7 @@ async function saveStoredReadStatus(status) {
   });
 }
 
-function loadStoredReadStatus() {
+async function loadStoredReadStatus() {
   const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
     headers: { Authorization: `Bearer ${GITHUB_TOKEN}` }
   });

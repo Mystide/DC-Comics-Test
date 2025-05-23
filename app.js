@@ -10,7 +10,7 @@ if (gistIdFromURL) {
   localStorage.setItem("gistId", gistIdFromURL);
 }
 const GITHUB_TOKEN = localStorage.getItem("gistToken");
-const GIST_ID = localStorage.getItem("gistId");
+const GIST_ID = "f4ac4f63f8f150bde113a52246bdea28";
 
 let storedRead = {};
 let comicData = [];

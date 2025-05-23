@@ -1,3 +1,47 @@
+
+// Gist-Konfiguration
+const GIST_ID = 'f4ac4f63f8f150bde113a52246bdea28';
+// Token per URL einmal setzen und dann aus localStorage lesen
+const params = new URLSearchParams(window.location.search);
+const tokenFromURL = params.get("token");
+if (tokenFromURL) {
+  localStorage.setItem("gistToken", tokenFromURL);
+}
+const GITHUB_TOKEN = localStorage.getItem("gistToken");
+
+// Speicherstruktur
+let storedRead = {};
+
+function getStorageKey(c) {
+  return `${c.series || 'unknown'}_${c.issue_number || c.title}`;
+}
+
+async function loadStoredReadStatus() {
+  const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    headers: { Authorization: `Bearer ${GITHUB_TOKEN}` }
+  });
+  const gist = await res.json();
+  const content = JSON.parse(gist.files['readComics.json'].content);
+  return content;
+}
+
+async function saveStoredReadStatus(status) {
+  await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      files: {
+        'readComics.json': {
+          content: JSON.stringify(status, null, 2)
+        }
+      }
+    })
+  });
+}
+
 let comicData = [];
 
 const storedRead = JSON.parse(localStorage.getItem("readComics") || "{}");
@@ -202,7 +246,25 @@ window.addEventListener('keydown', e => {
   if (e.key === 'Escape') document.getElementById('infoDialog').close();
 });
 
-fetch('./manifest.json')
+
+loadStoredReadStatus().then(result => {
+  storedRead = result;
+
+  fetch('./manifest.json')
+    .then(res => res.json())
+    .then(files => Promise.all(files.map(f => fetch(f).then(r => r.json()))))
+    .then(results => {
+      comicData = results.flat();
+      for (const c of comicData) {
+        const key = getStorageKey(c);
+        if (storedRead[key]) {
+          c.read = true;
+        }
+      }
+      renderComics();
+    });
+});
+
   .then(res => res.json())
   .then(files => Promise.all(files.map(f => fetch(f).then(r => r.json()))))
   .then(results => {

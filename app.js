@@ -44,6 +44,12 @@ function createComicCard(comic) {
   title.className = "comic-title";
   title.textContent = comic.title;
   card.appendChild(title);
+  if (comic.release_date) {
+  const date = document.createElement("div");
+  date.className = "comic-date";
+  date.textContent = comic.release_date;
+  card.appendChild(date);
+}
 
   const date = document.createElement("div");
   date.className = "comic-date";

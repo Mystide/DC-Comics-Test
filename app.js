@@ -1,3 +1,30 @@
+const params = new URLSearchParams(window.location.search);
+const tokenFromURL = params.get("token");
+const gistIdFromURL = params.get("gist");
+if (tokenFromURL) localStorage.setItem("gistToken", tokenFromURL);
+if (gistIdFromURL) localStorage.setItem("gistId", gistIdFromURL);
+
+const GITHUB_TOKEN = localStorage.getItem("gistToken");
+const GIST_ID = localStorage.getItem("gistId");
+
+async function saveStoredReadStatus(status) {
+  console.log("💾 Speichere Gist-Sync:", status);
+  await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    method: 'PATCH',
+    headers: {
+      Authorization: `Bearer ${GITHUB_TOKEN}`,
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      files: {
+        'readStatus.json': {
+          content: JSON.stringify(status, null, 2)
+        }
+      }
+    })
+  });
+}
+
 let comicData = [];
 
 const storedRead = JSON.parse(localStorage.getItem("readComics") || "{}");

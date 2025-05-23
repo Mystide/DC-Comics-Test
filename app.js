@@ -215,4 +215,3 @@ fetch('./manifest.json')
     }
     renderComics();
   });
-

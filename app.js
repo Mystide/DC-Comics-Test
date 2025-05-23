@@ -1,96 +1,208 @@
-let comics = [];
+let comicData = [];
 
-async function loadComics() {
-  const manifest = await fetch("manifest.json").then(r => r.json());
-  const all = [];
-
-  for (const file of manifest) {
-    const data = await fetch(file).then(r => r.json());
-    all.push(...data);
-  }
-
-  comics = all;
-  renderComics();
+function getStorageKey(comic) {
+  return `${comic.series || 'unknown'}_${comic.issue_number || comic.title}`;
 }
 
-function renderComics(search = "") {
-  const grid = document.getElementById("comicGrid");
-  grid.innerHTML = "";
+function toggleReadByKey(key) {
+  const card = document.querySelector(`.comic-card[data-key="${key}"]`);
+  if (!card) return;
 
-  for (const comic of comics) {
-    const card = createComicCard(comic);
+  if (card.classList.contains('read')) {
+    localStorage.removeItem(key);
+    card.classList.remove('read');
+  } else {
+    localStorage.setItem(key, 'read');
+    card.classList.add('read');
+  }
+
+  updateProgress();
+}
+
+function updateProgress() {
+  const total = comicData.length;
+  const read = comicData.filter(c => localStorage.getItem(getStorageKey(c))).length;
+  const percent = total ? ((read / total) * 100).toFixed(1) : 0;
+  document.getElementById('progressBar').style.width = `${percent}%`;
+  document.getElementById('progressText').textContent = `${read} / ${total} read (${percent}%)`;
+}
+
+function openDialog(comic) {
+  document.getElementById('dialogTitle').textContent = comic.title;
+  document.getElementById('dialogIssue').textContent = comic.issue_number || '-';
+  document.getElementById('dialogDate').textContent = comic.release_date || '-';
+  document.getElementById('dialogSeries').textContent = comic.series || '-';
+  document.getElementById('infoDialog').showModal();
+}
+
+function extractSortable(c) {
+  return (c.title || '').toLowerCase().replace(/[^a-z0-9#]+/g, ' ');
+}
+
+function renderComics(filter = '') {
+  const sort = document.getElementById('sortSelect').value;
+  const readFilter = document.getElementById('readFilterSelect').value;
+  const grid = document.getElementById('comicGrid');
+  grid.innerHTML = '';
+
+  const filtered = comicData
+    .filter(c => {
+      const isRead = localStorage.getItem(getStorageKey(c));
+      if (readFilter === 'read' && !isRead) return false;
+      if (readFilter === 'unread' && isRead) return false;
+      const text = `${c.title} ${c.event} ${(c.characters || []).join(' ')} ${(c.writer || []).join(' ')} ${(c.artist || []).join(' ')}`.toLowerCase();
+      return text.includes(filter.toLowerCase());
+    })
+    .sort((a, b) => {
+      switch (sort) {
+        case 'title-asc': return extractSortable(a).localeCompare(extractSortable(b), undefined, { numeric: true });
+        case 'title-desc': return extractSortable(b).localeCompare(extractSortable(a), undefined, { numeric: true });
+        case 'date-asc': return new Date(a.release_date || 0) - new Date(b.release_date || 0);
+        case 'date-desc': return new Date(b.release_date || 0) - new Date(a.release_date || 0);
+        default: return 0;
+      }
+    });
+
+  filtered.forEach(c => {
+    const card = document.createElement('div');
+    const key = getStorageKey(c);
+    card.className = 'comic-card';
+    card.dataset.key = key;
+    if (localStorage.getItem(key)) card.classList.add('read');
+
+    const badge = document.createElement('div');
+    badge.className = 'read-badge';
+    badge.textContent = 'Read';
+    card.appendChild(badge);
+
+    const cover = document.createElement('div');
+    cover.className = 'comic-cover';
+    cover.style.width = '100%';
+    cover.style.aspectRatio = '2 / 3';
+    cover.style.borderRadius = '4px';
+    cover.style.backgroundImage = `url('${c.covers[0]}')`;
+    cover.style.backgroundSize = 'cover';
+    cover.style.backgroundPosition = 'center';
+    cover.style.transition = 'opacity 0.3s ease-in';
+
+    let pressTimer;
+    let longPress = false;
+    let touchMoved = false;
+    let startX = 0;
+    let startY = 0;
+
+    const startPress = () => {
+      longPress = false;
+      pressTimer = setTimeout(() => {
+        if (!touchMoved) {
+          longPress = true;
+          toggleReadByKey(key);
+        }
+      }, 600);
+    };
+
+    const cancelPress = () => clearTimeout(pressTimer);
+
+    cover.addEventListener('mousedown', e => { if (e.button === 0) startPress(); });
+    cover.addEventListener('mouseup', cancelPress);
+    cover.addEventListener('mouseleave', cancelPress);
+
+    cover.addEventListener('touchstart', e => {
+      if (e.touches.length === 1) {
+        touchMoved = false;
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        startPress();
+      }
+    });
+
+    cover.addEventListener('touchmove', e => {
+      const dx = Math.abs(e.touches[0].clientX - startX);
+      const dy = Math.abs(e.touches[0].clientY - startY);
+      if (dx > 5 || dy > 5) {
+        touchMoved = true;
+        clearTimeout(pressTimer);
+      }
+    });
+
+    cover.addEventListener('touchend', cancelPress);
+    cover.addEventListener('contextmenu', e => e.preventDefault());
+
+    cover.addEventListener('click', e => {
+      if (longPress) return;
+      e.preventDefault();
+      openDialog(c);
+    });
+
+    const title = document.createElement('div');
+    title.className = 'comic-title';
+    title.textContent = c.title;
+
+    card.append(cover, title);
+    if (c.release_date) {
+  const date = document.createElement('div');
+  date.className = 'comic-date';
+  date.textContent = c.release_date;
+  card.appendChild(date);
+}
+
     grid.appendChild(card);
-  }
-}
-
-function createComicCard(comic) {
-  const card = document.createElement("div");
-  card.className = "comic-card";
-  if (comic.read) card.classList.add("read");
-
-  const badge = document.createElement("div");
-  badge.className = "read-badge";
-  badge.textContent = "✓";
-  card.appendChild(badge);
-
-  if (comic.covers?.length) {
-    const img = document.createElement("img");
-    img.src = comic.covers[0];
-    img.alt = comic.title;
-    card.appendChild(img);
-  }
-
-  const title = document.createElement("div");
-  title.className = "comic-title";
-  title.textContent = comic.title;
-  card.appendChild(title);
-
-  // ✅ Release-Date hinzufügen (nur einmal, elegant)
-  if (comic.release_date) {
-    const date = document.createElement("div");
-    date.className = "comic-date";
-    date.textContent = comic.release_date;
-    card.appendChild(date);
-  }
-
-  // Interaktion: gedrückt halten → als gelesen markieren
-  let pressTimer;
-  let longPress = false;
-
-  card.addEventListener("mousedown", startPress);
-  card.addEventListener("touchstart", startPress);
-
-  card.addEventListener("mouseup", cancelPress);
-  card.addEventListener("mouseleave", cancelPress);
-  card.addEventListener("touchend", cancelPress);
-  card.addEventListener("touchcancel", cancelPress);
-
-  card.addEventListener("click", () => {
-    if (!longPress) showComicInfo(comic);
   });
 
-  function startPress() {
-    longPress = false;
-    pressTimer = setTimeout(() => {
-      comic.read = !comic.read;
-      renderComics();
-      longPress = true;
-    }, 400);
-  }
-
-  function cancelPress() {
-    clearTimeout(pressTimer);
-  }
-
-  return card;
+  updateProgress();
 }
 
-function showComicInfo(comic) {
-  document.getElementById("dialogTitle").textContent = comic.title || "–";
-  document.getElementById("dialogSeries").textContent = comic.series || "–";
-  document.getElementById("dialogIssue").textContent = comic.issue_number || "–";
-  document.getElementById("dialogDate").textContent = comic.release_date || "–";
-  document.getElementById("infoDialog").showModal();
-}
+document.getElementById('settingsToggle').addEventListener('click', e => {
+  e.stopPropagation();
+  const menu = document.getElementById('settingsMenu');
+  menu.style.display = menu.style.display === 'block' ? 'none' : 'block';
+});
 
-loadComics();
+document.addEventListener('click', e => {
+  const menu = document.getElementById('settingsMenu');
+  const toggle = document.getElementById('settingsToggle');
+  if (!menu.contains(e.target) && e.target !== toggle) {
+    menu.style.display = 'none';
+  }
+});
+
+document.getElementById('searchInput').addEventListener('input', e => {
+  renderComics(e.target.value);
+});
+
+document.getElementById('sortSelect').addEventListener('change', () => {
+  renderComics(document.getElementById('searchInput').value);
+});
+
+document.getElementById('readFilterSelect').addEventListener('change', () => {
+  renderComics(document.getElementById('searchInput').value);
+});
+
+document.getElementById('columnSelect').addEventListener('change', e => {
+  const grid = document.getElementById('comicGrid');
+  const value = e.target.value;
+  grid.style.gridTemplateColumns = value === 'auto'
+    ? 'repeat(auto-fill, minmax(160px, 1fr))'
+    : `repeat(${value}, minmax(0, 1fr))`;
+});
+
+document.getElementById('scrollTopBtn').addEventListener('click', () => {
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+});
+
+window.addEventListener('scroll', () => {
+  const btn = document.getElementById('scrollTopBtn');
+  btn.style.display = window.scrollY > 300 ? 'block' : 'none';
+});
+
+window.addEventListener('keydown', e => {
+  if (e.key === 'Escape') document.getElementById('infoDialog').close();
+});
+
+fetch('./manifest.json')
+  .then(res => res.json())
+  .then(files => Promise.all(files.map(f => fetch(f).then(r => r.json()))))
+  .then(results => {
+    comicData = results.flat();
+    renderComics();
+  });

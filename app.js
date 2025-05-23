@@ -258,7 +258,6 @@ fetch('./manifest.json')
 
 
 async function init() {
-  storedRead = await loadStoredReadStatus();
 
   const manifest = await fetch('./manifest.json').then(r => r.json());
   const results = await Promise.all(manifest.map(f => fetch(f).then(r => r.json())));
@@ -274,4 +273,21 @@ async function init() {
   renderComics();
 }
 
+init();
+async function init() {
+  storedRead = await loadStoredReadStatus();
+
+  const manifest = await fetch('./manifest.json').then(r => r.json());
+  const results = await Promise.all(manifest.map(f => fetch(f).then(r => r.json())));
+
+  comicData = results.flat();
+  for (const c of comicData) {
+    const key = getStorageKey(c);
+    if (storedRead[key]) {
+      c.read = true;
+    }
+  }
+
+  renderComics();
+}
 init();

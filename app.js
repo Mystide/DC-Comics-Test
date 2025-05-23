@@ -31,6 +31,9 @@ async function saveStoredReadStatus(status) {
         'readStatus.json': {
           content: JSON.stringify(status, null, 2)
         }
+      }
+    })
+        }
 
 let comicData = [];
 

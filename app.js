@@ -1,54 +1,26 @@
 let comics = [];
 
 async function loadComics() {
-  try {
-    const manifest = await fetch("manifest.json").then(r => r.json());
-    const all = [];
+  const manifest = await fetch("manifest.json").then(r => r.json());
+  const all = [];
 
-    for (const file of manifest) {
-      const data = await fetch(file).then(r => r.json());
-      all.push(...data);
-    }
-
-    comics = all;
-    renderComics();
-  } catch (error) {
-    console.error("Fehler beim Laden der Comic-Daten:", error);
+  for (const file of manifest) {
+    const data = await fetch(file).then(r => r.json());
+    all.push(...data);
   }
+
+  comics = all;
+  renderComics();
 }
 
 function renderComics(search = "") {
   const grid = document.getElementById("comicGrid");
   grid.innerHTML = "";
 
-  const sortValue = document.getElementById("sortSelect").value;
-  const readFilter = document.getElementById("readFilterSelect").value;
-
-  let filtered = comics.filter(comic => {
-    const matchesSearch =
-      comic.title?.toLowerCase().includes(search.toLowerCase()) ||
-      comic.series?.toLowerCase().includes(search.toLowerCase());
-    const matchesFilter =
-      readFilter === "all" ||
-      (readFilter === "read" && comic.read) ||
-      (readFilter === "unread" && !comic.read);
-    return matchesSearch && matchesFilter;
-  });
-
-  filtered.sort((a, b) => {
-    if (sortValue === "title-asc") return a.title.localeCompare(b.title);
-    if (sortValue === "title-desc") return b.title.localeCompare(a.title);
-    if (sortValue === "date-asc") return new Date(a.release_date) - new Date(b.release_date);
-    if (sortValue === "date-desc") return new Date(b.release_date) - new Date(a.release_date);
-    return 0;
-  });
-
-  for (const comic of filtered) {
+  for (const comic of comics) {
     const card = createComicCard(comic);
     grid.appendChild(card);
   }
-
-  updateProgress(filtered);
 }
 
 function createComicCard(comic) {
@@ -61,7 +33,7 @@ function createComicCard(comic) {
   badge.textContent = "✓";
   card.appendChild(badge);
 
-  if (comic.covers && comic.covers.length) {
+  if (comic.covers?.length) {
     const img = document.createElement("img");
     img.src = comic.covers[0];
     img.alt = comic.title;
@@ -78,7 +50,37 @@ function createComicCard(comic) {
   date.textContent = comic.release_date || " ";
   card.appendChild(date);
 
-  card.onclick = () => showComicInfo(comic);
+  // Interaktion: Klick vs. gedrückt halten
+  let pressTimer;
+  let longPress = false;
+
+  const startPress = (e) => {
+    longPress = false;
+    pressTimer = setTimeout(() => {
+      comic.read = !comic.read;
+      renderComics();
+      longPress = true;
+    }, 400);
+  };
+
+  const cancelPress = (e) => {
+    clearTimeout(pressTimer);
+  };
+
+  const handleClick = (e) => {
+    if (!longPress) showComicInfo(comic);
+  };
+
+  card.addEventListener("mousedown", startPress);
+  card.addEventListener("touchstart", startPress);
+
+  card.addEventListener("mouseup", cancelPress);
+  card.addEventListener("mouseleave", cancelPress);
+  card.addEventListener("touchend", cancelPress);
+  card.addEventListener("touchcancel", cancelPress);
+
+  card.addEventListener("click", handleClick);
+
   return card;
 }
 
@@ -89,41 +91,5 @@ function showComicInfo(comic) {
   document.getElementById("dialogDate").textContent = comic.release_date || "–";
   document.getElementById("infoDialog").showModal();
 }
-
-function updateProgress(visibleComics) {
-  const readCount = visibleComics.filter(c => c.read).length;
-  const total = visibleComics.length;
-  const percent = total === 0 ? 0 : Math.round((readCount / total) * 100);
-
-  document.getElementById("progressText").textContent = `${readCount} / ${total} read (${percent}%)`;
-  document.getElementById("progressBar").style.width = `${percent}%`;
-}
-
-document.getElementById("sortSelect").addEventListener("change", () =>
-  renderComics(document.getElementById("searchInput").value)
-);
-document.getElementById("readFilterSelect").addEventListener("change", () =>
-  renderComics(document.getElementById("searchInput").value)
-);
-document.getElementById("searchInput").addEventListener("input", e =>
-  renderComics(e.target.value)
-);
-document.getElementById("settingsToggle").addEventListener("click", () => {
-  const menu = document.getElementById("settingsMenu");
-  menu.style.display = menu.style.display === "none" ? "flex" : "none";
-});
-document.getElementById("columnSelect").addEventListener("change", e => {
-  const grid = document.getElementById("comicGrid");
-  const value = e.target.value;
-  grid.style.gridTemplateColumns =
-    value === "auto" ? "repeat(auto-fill, minmax(160px, 1fr))" : `repeat(${value}, 1fr)`;
-});
-document.getElementById("scrollTopBtn").addEventListener("click", () => {
-  window.scrollTo({ top: 0, behavior: "smooth" });
-});
-window.addEventListener("scroll", () => {
-  const btn = document.getElementById("scrollTopBtn");
-  btn.style.display = window.scrollY > 300 ? "block" : "none";
-});
 
 loadComics();

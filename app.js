@@ -1,8 +1,11 @@
 let comicData = [];
 
-function getStorageKey(comic) {
-  return `${comic.series || 'unknown'}_${comic.issue_number || comic.title}`;
+const storedRead = JSON.parse(localStorage.getItem("readComics") || "{}");
+
+function getStorageKey(c) {
+  return `${c.series || 'unknown'}_${c.issue_number || c.title}`;
 }
+
 
 function toggleReadByKey(key) {
   const card = document.querySelector(`.comic-card[data-key="${key}"]`);
@@ -204,5 +207,12 @@ fetch('./manifest.json')
   .then(files => Promise.all(files.map(f => fetch(f).then(r => r.json()))))
   .then(results => {
     comicData = results.flat();
+    for (const c of comicData) {
+      const key = getStorageKey(c);
+      if (storedRead[key]) {
+        c.read = true;
+      }
+    }
     renderComics();
   });
+

@@ -65,8 +65,6 @@ function createComicCard(comic) {
     const img = document.createElement("img");
     img.src = comic.covers[0];
     img.alt = comic.title;
-    img.style.width = "100%";
-    img.style.borderRadius = "4px";
     card.appendChild(img);
   }
 

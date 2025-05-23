@@ -39,7 +39,6 @@ async
 
 let comicData = [];
 
-const storedRead = JSON.parse(localStorage.getItem("readComics") || "{}");
 
 function getStorageKey(c) {
   return `${c.series || 'unknown'}_${c.issue_number || c.title}`;

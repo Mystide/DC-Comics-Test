@@ -7,9 +7,34 @@ if (gistIdFromURL) localStorage.setItem("gistId", gistIdFromURL);
 const GITHUB_TOKEN = localStorage.getItem("gistToken");
 const GIST_ID = localStorage.getItem("gistId");
 
-async function saveStoredReadStatus(status) {
-  console.log("💾 Speichere Gist-Sync:", status);
-  await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+async async function saveStoredReadStatus(status) {
+  console.log("💾 Versuche Gist-Sync...");
+  try {
+    const response = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${GITHUB_TOKEN}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        files: {
+          'readStatus.json': {
+            content: JSON.stringify(status, null, 2)
+          }
+        }
+      })
+    });
+
+    if (response.ok) {
+      console.log("✅ Gist erfolgreich gespeichert");
+    } else {
+      const errorText = await response.text();
+      console.error(`❌ Fehler beim Gist-Sync: ${response.status} – ${errorText}`);
+    }
+  } catch (err) {
+    console.error("❌ Netzwerk- oder Syntaxfehler beim Gist-Sync:", err);
+  }
+}`, {
     method: 'PATCH',
     headers: {
       Authorization: `Bearer ${GITHUB_TOKEN}`,

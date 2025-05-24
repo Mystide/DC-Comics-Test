@@ -102,17 +102,17 @@
   padding: 1rem;
 }
     .comic-card {
-      background: #1c1c1c;
-      border-radius: 8px;
-      padding: 0.5rem;
-      box-shadow: 0 2px 6px rgba(0,0,0,0.5);
-      position: relative;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      transition: box-shadow 0.3s ease, transform 0.2s ease;
-      height: 100%;
-    }
+  background: #1c1c1c;
+  border-radius: 8px;
+  padding: 0.4rem 0.4rem 0.3rem;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  min-height: 320px;
+}
     .cover-wrapper {
       height: 240px;
       display: flex;
@@ -142,19 +142,19 @@
       font-weight: bold;
     }
     .comic-title {
-      font-weight: bold;
-      font-size: 0.9rem;
+      font-weight: 600;
+      font-size: 0.82rem;
+      margin-top: 0.4rem;
+      min-height: 1.8rem;
       text-align: center;
-      margin-top: 0.5rem;
-      min-height: 2.5rem;
       display: flex;
       align-items: flex-end;
       justify-content: center;
     }
     .comic-date {
-      font-size: 0.75rem;
-      color: #bbb;
-      margin-top: 0.2rem;
+      font-size: 0.7rem;
+      color: #aaa;
+      margin-top: 0.1rem;
       text-align: center;
     }
     .read-badge {

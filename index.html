@@ -97,7 +97,6 @@
     }
     .comic-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
       gap: 1rem;
       padding: 1rem;
     }
@@ -111,6 +110,21 @@
       flex-direction: column;
       align-items: center;
       transition: box-shadow 0.3s ease, transform 0.2s ease;
+      height: 100%;
+    }
+    .cover-wrapper {
+      height: 240px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 100%;
+    }
+    .cover-wrapper img {
+      max-height: 100%;
+      max-width: 100%;
+      object-fit: contain;
+      display: block;
+      pointer-events: none;
     }
     .comic-card img {
       width: 100%;

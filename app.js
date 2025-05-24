@@ -87,10 +87,13 @@ function renderComics(search = "") {
     badge.textContent = "✓";
     card.appendChild(badge);
 
+    const coverWrapper = document.createElement("div");
+    coverWrapper.className = "cover-wrapper";
     const img = document.createElement("img");
     img.src = comic.covers?.[0] || "";
     img.alt = comic.title;
-    card.appendChild(img);
+    coverWrapper.appendChild(img);
+    card.appendChild(coverWrapper);
 
     const title = document.createElement("div");
     title.className = "comic-title";

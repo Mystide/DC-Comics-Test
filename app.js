@@ -163,4 +163,10 @@ async function init() {
   });
 }
 
-document.addEventListener("DOMContentLoaded", init);
+document.addEventListener("DOMContentLoaded", () => {
+  init();
+  document.getElementById("settingsToggle").addEventListener("click", () => {
+    const menu = document.getElementById("settingsMenu");
+    menu.style.display = (menu.style.display === "none" || menu.style.display === "") ? "flex" : "none";
+  });
+});

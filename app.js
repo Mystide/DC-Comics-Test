@@ -1,4 +1,3 @@
-
 // GitHub Gist Token + ID aus URL lesen und im localStorage speichern
 const params = new URLSearchParams(window.location.search);
 const tokenFromURL = params.get("token");
@@ -79,81 +78,52 @@ function renderComics(search = "") {
     const cover = document.createElement("img");
     cover.src = c.covers?.[0] || "";
     cover.alt = c.title;
+    cover.style.objectFit = "contain";
+    cover.style.maxWidth = "100%";
+    cover.style.maxHeight = "100%";
+    cover.style.userSelect = "none";
+    cover.draggable = false;
 
-    const title = document.createElement("div");
-    title.className = "comic-title";
-    title.textContent = c.title;
+    // Kein title-Attribut, um Tooltip-Probleme auf Mobilgeräten zu vermeiden
 
-    const date = document.createElement("div");
-    date.className = "comic-date";
-    date.textContent = c.release_date || "";
-
-    card.append(badge, cover, title, date);
-
-    let pressTimer;
-    let longPress = false;
-
-    card.addEventListener("mousedown", startPress);
-    card.addEventListener("touchstart", startPress);
-    card.addEventListener("mouseup", cancelPress);
-    card.addEventListener("mouseleave", cancelPress);
-    card.addEventListener("touchend", cancelPress);
-    card.addEventListener("touchcancel", cancelPress);
+    card.appendChild(cover);
+    card.appendChild(badge);
 
     card.addEventListener("click", () => {
-      if (!longPress) showComicInfo(c);
+      const key = getStorageKey(c);
+      c.read = !c.read;
+      storedRead[key] = c.read;
+      card.classList.toggle("read");
+      saveStoredReadStatus(storedRead);
     });
 
-    function startPress() {
-      longPress = false;
-      pressTimer = setTimeout(() => {
-        const key = getStorageKey(c);
-        c.read = !c.read;
-        storedRead[key] = c.read;
-        saveStoredReadStatus(storedRead);
-        renderComics();
-        longPress = true;
-      }, 400);
-    }
-
-    function cancelPress() {
-      clearTimeout(pressTimer);
-    }
-
-    document.getElementById("comicGrid").appendChild(card);
+    grid.appendChild(card);
   }
 }
 
-function showComicInfo(c) {
-  document.getElementById("dialogTitle").textContent = c.title || "–";
-  document.getElementById("dialogSeries").textContent = c.series || "–";
-  document.getElementById("dialogIssue").textContent = c.issue_number || "–";
-  document.getElementById("dialogDate").textContent = c.release_date || "–";
-  document.getElementById("infoDialog").showModal();
+async function init() {
+  storedRead = await loadStoredReadStatus();
+  const res = await fetch("comics.json");
+  comicData = await res.json();
+
+  for (const c of comicData) {
+    const key = getStorageKey(c);
+    c.read = storedRead[key] || false;
+  }
+
+  renderComics();
+
+  document.getElementById("searchInput").addEventListener("input", e => {
+    renderComics(e.target.value);
+  });
+
+  document.getElementById("sortSelect").addEventListener("change", () => {
+    renderComics(document.getElementById("searchInput").value);
+  });
+
+  document.getElementById("readFilterSelect").addEventListener("change", () => {
+    renderComics(document.getElementById("searchInput").value);
+  });
 }
 
-document.getElementById("searchInput").addEventListener("input", e => renderComics(e.target.value));
-document.getElementById("sortSelect").addEventListener("change", () => renderComics(document.getElementById("searchInput").value));
-document.getElementById("readFilterSelect").addEventListener("change", () => renderComics(document.getElementById("searchInput").value));
-document.getElementById("settingsToggle").addEventListener("click", () => {
-  const menu = document.getElementById("settingsMenu");
-  menu.style.display = menu.style.display === "none" ? "flex" : "none";
-});
-
-loadStoredReadStatus().then(result => {
-  storedRead = result;
-
-  fetch('./manifest.json')
-    .then(res => res.json())
-    .then(files => Promise.all(files.map(f => fetch(f).then(r => r.json()))))
-    .then(results => {
-      comicData = results.flat();
-      for (const c of comicData) {
-        const key = getStorageKey(c);
-        if (storedRead[key]) {
-          c.read = true;
-        }
-      }
-      renderComics();
-    });
-});
+document.addEventListener("DOMContentLoaded", init);

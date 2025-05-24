@@ -17,7 +17,7 @@ function getStorageKey(comic) {
 
 async function loadReadStatus() {
   try {
-    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}?v=${Date.now()}`, {
       headers: { Authorization: `Bearer ${GITHUB_TOKEN}` },
     });
     if (!res.ok) throw new Error("Failed to load Gist");

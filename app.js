@@ -161,6 +161,17 @@ async function init() {
     renderComics(document.getElementById("searchInput").value);
   });
 
+  document.getElementById("columnSelect").addEventListener("change", (e) => {
+  const grid = document.getElementById("comicGrid");
+  grid.className = "comic-grid"; // Reset Klassen
+  const val = e.target.value;
+  if (["2", "3", "4", "5"].includes(val)) {
+    grid.classList.add("columns-" + val);
+  } else {
+    grid.classList.add("columns-auto");
+  }
+});
+
   document.getElementById("readFilterSelect").addEventListener("change", () => {
     renderComics(document.getElementById("searchInput").value);
   });

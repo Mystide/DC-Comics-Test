@@ -143,10 +143,7 @@ async function loadComicData() {
     console.error("Critical error loading comic data", e);
     return [];
   }
-} catch (e) {
-        console.warn(`Failed to load ${file}`, e);
-      }
-    }
+}
      catch (e) {
     console.error("Critical error loading comic data", e);
     return [];

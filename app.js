@@ -7,7 +7,6 @@ if (gistIdFromURL) localStorage.setItem("gistId", gistIdFromURL);
 const GITHUB_TOKEN = localStorage.getItem("gistToken");
 const GIST_ID = localStorage.getItem("gistId") || "f4ac4f63f8f150bde113a52246bdea28";
 
-// manifest.json dynamisch laden
 let manifest = [];
 let comicData = [];
 let readStatus = {};
@@ -28,21 +27,6 @@ async function loadReadStatus() {
     console.warn("Fallback to local readStatus", e);
     return {};
   }
-}`, {
-      headers: { Authorization: `Bearer ${GITHUB_TOKEN}` },
-    });
-    if (!res.ok) throw new Error("Failed to load Gist");
-    const gist = await res.json();
-    return JSON.parse(gist.files["readStatus.json"].content || "{}");
-  } catch (e) {
-    console.warn("Fallback to local readStatus", e);
-    return {};
-  }
-}`, {
-    headers: { Authorization: `Bearer ${GITHUB_TOKEN}` },
-  });
-  const gist = await res.json();
-  return JSON.parse(gist.files["readStatus.json"].content);
 }
 
 async function saveReadStatus(status) {
@@ -154,25 +138,6 @@ async function loadComicData() {
     return [];
   }
 }
-    return all;
-  } catch (e) {
-    console.error("Critical error loading comic data", e);
-    return [];
-  }
-}
-    return all;
-  } catch (e) {
-    console.error("Critical error loading comic data", e);
-    return [];
-  }
-}
-     catch (e) {
-    console.error("Critical error loading comic data", e);
-    return [];
-  }
-}
-  
-  
 
 async function init() {
   readStatus = await loadReadStatus();

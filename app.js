@@ -29,6 +29,16 @@ async function loadReadStatus() {
     return {};
   }
 }`, {
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}` },
+    });
+    if (!res.ok) throw new Error("Failed to load Gist");
+    const gist = await res.json();
+    return JSON.parse(gist.files["readStatus.json"].content || "{}");
+  } catch (e) {
+    console.warn("Fallback to local readStatus", e);
+    return {};
+  }
+}`, {
     headers: { Authorization: `Bearer ${GITHUB_TOKEN}` },
   });
   const gist = await res.json();
@@ -138,6 +148,18 @@ async function loadComicData() {
         console.warn(`Failed to load ${file}`, e);
       }
     }
+    return all;
+  } catch (e) {
+    console.error("Critical error loading comic data", e);
+    return [];
+  }
+}
+    return all;
+  } catch (e) {
+    console.error("Critical error loading comic data", e);
+    return [];
+  }
+}
     return all;
   } catch (e) {
     console.error("Critical error loading comic data", e);

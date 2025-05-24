@@ -68,10 +68,10 @@ function renderComics(search = "") {
       (filter === "unread" && !comic.read);
     return matchesSearch && matchesRead;
   });
-
-  filtered.sort((a, b) => {
-    if (sortValue === "title-asc") return a.title.localeCompare(b.title);
-    if (sortValue === "title-desc") return b.title.localeCompare(a.title);
+  
+    filtered.sort((a, b) => {
+  if (sortValue === "title-asc") return a.title.localeCompare(b.title, undefined, { numeric: true });
+  if (sortValue === "title-desc") return b.title.localeCompare(a.title, undefined, { numeric: true });
     if (sortValue === "date-asc") return new Date(a.release_date) - new Date(b.release_date);
     if (sortValue === "date-desc") return new Date(b.release_date) - new Date(a.release_date);
     return 0;

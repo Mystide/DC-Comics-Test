@@ -127,6 +127,7 @@ async function loadComicData() {
     const manifestRes = await fetch("manifest.json");
     if (!manifestRes.ok) throw new Error("manifest.json not found");
     manifest = await manifestRes.json();
+
     let all = [];
     for (const file of manifest) {
       try {
@@ -134,6 +135,15 @@ async function loadComicData() {
         const json = await res.json();
         all.push(...json);
       } catch (e) {
+        console.warn(`Failed to load ${file}`, e);
+      }
+    }
+    return all;
+  } catch (e) {
+    console.error("Critical error loading comic data", e);
+    return [];
+  }
+} catch (e) {
         console.warn(`Failed to load ${file}`, e);
       }
     }

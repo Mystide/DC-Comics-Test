@@ -230,7 +230,11 @@
       object-fit: contain;
       display: block;
     }
-
+.columns-2 { grid-template-columns: repeat(2, 1fr); }
+  .columns-3 { grid-template-columns: repeat(3, 1fr); }
+  .columns-4 { grid-template-columns: repeat(4, 1fr); }
+  .columns-5 { grid-template-columns: repeat(5, 1fr); }
+  .columns-auto { grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
   </style>
 </head>
 <body>

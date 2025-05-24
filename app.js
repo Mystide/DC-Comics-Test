@@ -1,159 +1,172 @@
-
-// GitHub Gist Token + ID aus URL lesen und im localStorage speichern
+// GitHub Token und Gist-ID aus URL oder localStorage lesen
 const params = new URLSearchParams(window.location.search);
 const tokenFromURL = params.get("token");
 const gistIdFromURL = params.get("gist");
-if (tokenFromURL) {
-  localStorage.setItem("gistToken", tokenFromURL);
-}
-if (gistIdFromURL) {
-  localStorage.setItem("gistId", gistIdFromURL);
-}
+if (tokenFromURL) localStorage.setItem("gistToken", tokenFromURL);
+if (gistIdFromURL) localStorage.setItem("gistId", gistIdFromURL);
 const GITHUB_TOKEN = localStorage.getItem("gistToken");
-const GIST_ID = "f4ac4f63f8f150bde113a52246bdea28";
+const GIST_ID = localStorage.getItem("gistId") || "f4ac4f63f8f150bde113a52246bdea28";
 
-let storedRead = {};
+// manifest.json dynamisch laden
+let manifest = [];
 let comicData = [];
+let readStatus = {};
 
-function getStorageKey(c) {
-  return `${c.series || 'unknown'}_${c.issue_number || c.title}`;
+function getStorageKey(comic) {
+  return `${comic.series || "unknown"}_${comic.issue_number || comic.title}`;
 }
 
-async function loadStoredReadStatus() {
-  const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    headers: { Authorization: `Bearer ${GITHUB_TOKEN}` }
+async function loadReadStatus() {
+  try {
+    const res = await fetch(`https://api.github.com/gists/${GIST_ID}`, {
+      headers: { Authorization: `Bearer ${GITHUB_TOKEN}` },
+    });
+    if (!res.ok) throw new Error("Failed to load Gist");
+    const gist = await res.json();
+    return JSON.parse(gist.files["readStatus.json"].content || "{}");
+  } catch (e) {
+    console.warn("Fallback to local readStatus", e);
+    return {};
+  }
+}`, {
+    headers: { Authorization: `Bearer ${GITHUB_TOKEN}` },
   });
   const gist = await res.json();
-  const content = JSON.parse(gist.files['readStatus.json'].content);
-  return content;
+  return JSON.parse(gist.files["readStatus.json"].content);
 }
 
-async function saveStoredReadStatus(status) {
+async function saveReadStatus(status) {
   await fetch(`https://api.github.com/gists/${GIST_ID}`, {
-    method: 'PATCH',
+    method: "PATCH",
     headers: {
       Authorization: `Bearer ${GITHUB_TOKEN}`,
-      'Content-Type': 'application/json'
+      "Content-Type": "application/json",
     },
     body: JSON.stringify({
       files: {
-        'readStatus.json': {
-          content: JSON.stringify(status, null, 2)
-        }
-      }
-    })
+        "readStatus.json": {
+          content: JSON.stringify(status, null, 2),
+        },
+      },
+    }),
   });
+}
+
+function updateProgressDisplay() {
+  const total = comicData.length;
+  const read = comicData.filter((c) => c.read).length;
+  const percent = total > 0 ? Math.round((read / total) * 100) : 0;
+  document.getElementById("progressText").textContent = `${read} / ${total} read (${percent}%)`;
+  document.getElementById("progressBar").style.width = `${percent}%`;
 }
 
 function renderComics(search = "") {
   const grid = document.getElementById("comicGrid");
   grid.innerHTML = "";
-
   const sortValue = document.getElementById("sortSelect").value;
-  const readFilter = document.getElementById("readFilterSelect").value;
+  const filter = document.getElementById("readFilterSelect").value;
 
-  let filtered = comicData.filter(c => {
-    const matchesSearch = c.title.toLowerCase().includes(search.toLowerCase());
+  let filtered = comicData.filter((comic) => {
+    const matchesSearch = comic.title.toLowerCase().includes(search.toLowerCase());
     const matchesRead =
-      readFilter === "all" ||
-      (readFilter === "read" && c.read) ||
-      (readFilter === "unread" && !c.read);
+      filter === "all" ||
+      (filter === "read" && comic.read) ||
+      (filter === "unread" && !comic.read);
     return matchesSearch && matchesRead;
   });
 
   filtered.sort((a, b) => {
     if (sortValue === "title-asc") return a.title.localeCompare(b.title);
     if (sortValue === "title-desc") return b.title.localeCompare(a.title);
+    if (sortValue === "date-asc") return new Date(a.release_date) - new Date(b.release_date);
+    if (sortValue === "date-desc") return new Date(b.release_date) - new Date(a.release_date);
     return 0;
   });
 
-  for (const c of filtered) {
+  for (const comic of filtered) {
     const card = document.createElement("div");
     card.className = "comic-card";
-    if (c.read) card.classList.add("read");
+    if (comic.read) card.classList.add("read");
 
     const badge = document.createElement("div");
     badge.className = "read-badge";
     badge.textContent = "✓";
+    card.appendChild(badge);
 
-    const cover = document.createElement("img");
-    cover.src = c.covers?.[0] || "";
-    cover.alt = c.title;
+    const img = document.createElement("img");
+    img.src = comic.covers?.[0] || "";
+    img.alt = comic.title;
+    card.appendChild(img);
 
     const title = document.createElement("div");
     title.className = "comic-title";
-    title.textContent = c.title;
+    title.textContent = comic.title;
+    card.appendChild(title);
 
     const date = document.createElement("div");
     date.className = "comic-date";
-    date.textContent = c.release_date || "";
-
-    card.append(badge, cover, title, date);
-
-    let pressTimer;
-    let longPress = false;
-
-    card.addEventListener("mousedown", startPress);
-    card.addEventListener("touchstart", startPress);
-    card.addEventListener("mouseup", cancelPress);
-    card.addEventListener("mouseleave", cancelPress);
-    card.addEventListener("touchend", cancelPress);
-    card.addEventListener("touchcancel", cancelPress);
+    date.textContent = comic.release_date || "";
+    card.appendChild(date);
 
     card.addEventListener("click", () => {
-      if (!longPress) showComicInfo(c);
+      const key = getStorageKey(comic);
+      comic.read = !comic.read;
+      readStatus[key] = comic.read;
+      card.classList.toggle("read");
+      updateProgressDisplay();
+      saveReadStatus(readStatus);
     });
 
-    function startPress() {
-      longPress = false;
-      pressTimer = setTimeout(() => {
-        const key = getStorageKey(c);
-        c.read = !c.read;
-        storedRead[key] = c.read;
-        saveStoredReadStatus(storedRead);
-        renderComics();
-        longPress = true;
-      }, 400);
-    }
+    grid.appendChild(card);
+  }
+  updateProgressDisplay();
+}
 
-    function cancelPress() {
-      clearTimeout(pressTimer);
+async function loadComicData() {
+  try {
+    const manifestRes = await fetch("manifest.json");
+    if (!manifestRes.ok) throw new Error("manifest.json not found");
+    manifest = await manifestRes.json();
+    let all = [];
+    for (const file of manifest) {
+      try {
+        const res = await fetch(file);
+        const json = await res.json();
+        all.push(...json);
+      } catch (e) {
+        console.warn(`Failed to load ${file}`, e);
+      }
     }
-
-    document.getElementById("comicGrid").appendChild(card);
+     catch (e) {
+    console.error("Critical error loading comic data", e);
+    return [];
   }
 }
+  
+  
 
-function showComicInfo(c) {
-  document.getElementById("dialogTitle").textContent = c.title || "–";
-  document.getElementById("dialogSeries").textContent = c.series || "–";
-  document.getElementById("dialogIssue").textContent = c.issue_number || "–";
-  document.getElementById("dialogDate").textContent = c.release_date || "–";
-  document.getElementById("infoDialog").showModal();
+async function init() {
+  readStatus = await loadReadStatus();
+  comicData = await loadComicData();
+
+  for (const comic of comicData) {
+    const key = getStorageKey(comic);
+    comic.read = readStatus[key] || false;
+  }
+
+  renderComics();
+
+  document.getElementById("searchInput").addEventListener("input", (e) => {
+    renderComics(e.target.value);
+  });
+
+  document.getElementById("sortSelect").addEventListener("change", () => {
+    renderComics(document.getElementById("searchInput").value);
+  });
+
+  document.getElementById("readFilterSelect").addEventListener("change", () => {
+    renderComics(document.getElementById("searchInput").value);
+  });
 }
 
-document.getElementById("searchInput").addEventListener("input", e => renderComics(e.target.value));
-document.getElementById("sortSelect").addEventListener("change", () => renderComics(document.getElementById("searchInput").value));
-document.getElementById("readFilterSelect").addEventListener("change", () => renderComics(document.getElementById("searchInput").value));
-document.getElementById("settingsToggle").addEventListener("click", () => {
-  const menu = document.getElementById("settingsMenu");
-  menu.style.display = menu.style.display === "none" ? "flex" : "none";
-});
-
-loadStoredReadStatus().then(result => {
-  storedRead = result;
-
-  fetch('./manifest.json')
-    .then(res => res.json())
-    .then(files => Promise.all(files.map(f => fetch(f).then(r => r.json()))))
-    .then(results => {
-      comicData = results.flat();
-      for (const c of comicData) {
-        const key = getStorageKey(c);
-        if (storedRead[key]) {
-          c.read = true;
-        }
-      }
-      renderComics();
-    });
-});
+document.addEventListener("DOMContentLoaded", init);

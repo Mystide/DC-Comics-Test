@@ -7,7 +7,7 @@ if (gistIdFromURL) localStorage.setItem("gistId", gistIdFromURL);
 const GITHUB_TOKEN = localStorage.getItem("gistToken");
 const GIST_ID = localStorage.getItem("gistId") || "f4ac4f63f8f150bde113a52246bdea28";
 
-let manifest = []; 
+let manifest = [];
 let comicData = [];
 let readStatus = {};
 
@@ -54,7 +54,6 @@ function updateProgressDisplay() {
   document.getElementById("progressBar").style.width = `${percent}%`;
 }
 
-
 function renderComics(search = "") {
   const grid = document.getElementById("comicGrid");
   grid.innerHTML = "";
@@ -69,7 +68,7 @@ function renderComics(search = "") {
       (filter === "unread" && !comic.read);
     return matchesSearch && matchesRead;
   });
-  
+
   filtered.sort((a, b) => {
     if (sortValue === "title-asc") return a.title.localeCompare(b.title, undefined, { numeric: true });
     if (sortValue === "title-desc") return b.title.localeCompare(a.title, undefined, { numeric: true });
@@ -106,7 +105,7 @@ function renderComics(search = "") {
     date.textContent = comic.release_date || "";
     card.appendChild(date);
 
-    // DCUI-Logo (falls vorhanden)
+    // ✅ DCUI-Logo sichtbar & klickbar
     if (comic.dcui) {
       const dcuiLink = document.createElement("a");
       dcuiLink.href = comic.dcui;
@@ -114,7 +113,7 @@ function renderComics(search = "") {
       dcuiLink.className = "dcui-link";
 
       const dcuiImg = document.createElement("img");
-      dcuiImg.src = "bilder/dcui_logo.png"; // lokaler Pfad zum Logo
+      dcuiImg.src = "img/dcui.png"; // ← passe Pfad an, falls nötig
       dcuiImg.alt = "DC Universe Infinite";
       dcuiImg.className = "dcui-logo";
 
@@ -122,7 +121,9 @@ function renderComics(search = "") {
       card.appendChild(dcuiLink);
     }
 
-    card.addEventListener("click", () => {
+    // 📌 Klickverhalten: Logo wird nicht vom Card-Klick blockiert
+    card.addEventListener("click", (e) => {
+      if (e.target.closest(".dcui-link")) return;
       const key = getStorageKey(comic);
       comic.read = !comic.read;
       readStatus[key] = comic.read;
@@ -180,7 +181,7 @@ async function init() {
 
   document.getElementById("columnSelect").addEventListener("change", (e) => {
     const grid = document.getElementById("comicGrid");
-    grid.className = "comic-grid"; // Reset Klassen
+    grid.className = "comic-grid";
     const val = e.target.value;
     if (["2", "3", "4", "5"].includes(val)) {
       grid.classList.add("columns-" + val);

@@ -87,33 +87,32 @@ function renderComics(search = "") {
     badge.textContent = "✓";
     card.appendChild(badge);
 
-    const coverWrapper = document.createElement("div");
-    coverWrapper.className = "cover-wrapper";
-    const img = document.createElement("img");
-    img.src = comic.covers?.[0] || "";
-    img.alt = comic.title;
-    coverWrapper.appendChild(img);
-    card.appendChild(coverWrapper);
+        const metaWrapper = document.createElement("div");
+    metaWrapper.className = "comic-meta-link-wrapper";
 
+    const innerMeta = document.createElement(comic.dcui_link ? "a" : "div");
+    innerMeta.className = "comic-meta-link";
     if (comic.dcui_link) {
-  const linkWrapper = document.createElement("a");
-  linkWrapper.href = comic.dcui_link;
-  linkWrapper.target = "_blank";
-  linkWrapper.rel = "noopener noreferrer";
-  linkWrapper.className = "comic-meta-link";
-  linkWrapper.title = "Read on DC Universe Infinite";
+      innerMeta.href = comic.dcui_link;
+      innerMeta.target = "_blank";
+      innerMeta.rel = "noopener noreferrer";
+      innerMeta.title = "Read on DC Universe Infinite";
+      innerMeta.style.display = "block";
+    }
 
-  const title = document.createElement("div");
-  title.className = "comic-title";
-  title.textContent = comic.title;
+    const title = document.createElement("div");
+    title.className = "comic-title";
+    title.textContent = comic.title;
 
-  const date = document.createElement("div");
-  date.className = "comic-date";
-  date.textContent = comic.release_date || "";
+    const date = document.createElement("div");
+    date.className = "comic-date";
+    date.textContent = comic.release_date || "";
 
-  linkWrapper.appendChild(title);
-  linkWrapper.appendChild(date);
-  card.appendChild(linkWrapper);
+    innerMeta.appendChild(title);
+    innerMeta.appendChild(date);
+    metaWrapper.appendChild(innerMeta);
+    card.appendChild(metaWrapper);
+
 } else {
   const metaWrapper = document.createElement("div");
   metaWrapper.className = "comic-meta-link";

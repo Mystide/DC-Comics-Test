@@ -63,10 +63,7 @@ function renderComics(search = "") {
     if (id) cardMap.set(id, card);
   });
 
-  
-  
-
-  grid.innerHTML = "";
+  // grid.innerHTML = ""; // entfernt, um Animation zu ermöglichen
   const sortValue = document.getElementById("sortSelect").value;
   const filter = document.getElementById("readFilterSelect").value;
 
@@ -87,50 +84,60 @@ function renderComics(search = "") {
     return 0;
   });
 
-  for (const comic of filtered) {
-    let card = cardMap.get(getStorageKey(comic));
-    if (!card) {
-      card = document.createElement("div");
-      card.className = "comic-card";
-      card.dataset.id = getStorageKey(comic);
+  const activeIds = new Set();
 
-      const badge = document.createElement("div");
-      badge.className = "read-badge";
-      badge.textContent = "✓";
-      card.appendChild(badge);
+for (const comic of filtered) {
+  const key = getStorageKey(comic);
+  activeIds.add(key);
+  let card = cardMap.get(key);
+  if (!card) {
+    card = document.createElement("div");
+    card.className = "comic-card";
+    card.dataset.id = key;
 
-      const coverWrapper = document.createElement("div");
-      coverWrapper.className = "cover-wrapper";
-      const img = document.createElement("img");
-      img.src = comic.covers?.[0] || "";
-      img.alt = comic.title;
-      coverWrapper.appendChild(img);
-      card.appendChild(coverWrapper);
+    const badge = document.createElement("div");
+    badge.className = "read-badge";
+    badge.textContent = "✓";
+    card.appendChild(badge);
 
-      const title = document.createElement("div");
-      title.className = "comic-title";
-      title.textContent = comic.title;
-      card.appendChild(title);
+    const coverWrapper = document.createElement("div");
+    coverWrapper.className = "cover-wrapper";
+    const img = document.createElement("img");
+    img.src = comic.covers?.[0] || "";
+    img.alt = comic.title;
+    coverWrapper.appendChild(img);
+    card.appendChild(coverWrapper);
 
-      const date = document.createElement("div");
-      date.className = "comic-date";
-      date.textContent = comic.release_date || "";
-      card.appendChild(date);
+    const title = document.createElement("div");
+    title.className = "comic-title";
+    title.textContent = comic.title;
+    card.appendChild(title);
 
-      card.addEventListener("click", () => {
-        const key = getStorageKey(comic);
-        comic.read = !comic.read;
-        readStatus[key] = comic.read;
-        card.classList.toggle("read");
-        updateProgressDisplay();
-        saveReadStatus(readStatus);
-      });
-    } else {
-      card.classList.toggle("read", comic.read);
-    }
+    const date = document.createElement("div");
+    date.className = "comic-date";
+    date.textContent = comic.release_date || "";
+    card.appendChild(date);
 
-    grid.appendChild(card);
+    card.addEventListener("click", () => {
+      comic.read = !comic.read;
+      readStatus[key] = comic.read;
+      card.classList.toggle("read");
+      updateProgressDisplay();
+      saveReadStatus(readStatus);
+    });
+  } else {
+    card.classList.toggle("read", comic.read);
   }
+
+  grid.appendChild(card);
+}
+
+// Entferne alte Cards, die nicht mehr angezeigt werden sollen
+for (const [id, card] of cardMap) {
+  if (!activeIds.has(id)) {
+    grid.removeChild(card);
+  }
+}
   updateProgressDisplay();
 }
 

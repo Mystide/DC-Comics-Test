@@ -64,8 +64,7 @@ function renderComics(search = "") {
   });
 
   
-    
-  });
+  
 
   grid.innerHTML = "";
   const sortValue = document.getElementById("sortSelect").value;

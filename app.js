@@ -132,7 +132,7 @@ for (const comic of filtered) {
     if (grid.children[index] !== card) {
     grid.appendChild(card);
   }
-});
+};
 
 for (const [id, card] of cardMap) {
   if (!activeIds.has(id)) {

@@ -129,19 +129,18 @@ for (const comic of filtered) {
     card.classList.toggle("read", comic.read);
   }
 
-  if (grid.children[filtered.indexOf(comic)] !== card) {
-  grid.appendChild(card);
-}
+    if (grid.children[index] !== card) {
+    grid.appendChild(card);
+  }
+});
 
-}
-
-// Entferne alte Cards, die nicht mehr angezeigt werden sollen
 for (const [id, card] of cardMap) {
   if (!activeIds.has(id)) {
     grid.removeChild(card);
   }
 }
-  updateProgressDisplay();
+
+updateProgressDisplay();
 }
 
 async function loadComicData() {

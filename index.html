@@ -171,45 +171,54 @@
       border-radius: 3px;
       display: none;
     }
-    .dcui-link {
-    position: absolute;
-    bottom: 8px;
-    right: 8px;
-    z-index: 3;
+    .comic-card {
+  position: relative;
+  padding-bottom: 44px; /* Mehr Platz unten für Logo */
+}
+
+.dcui-link {
+  position: absolute;
+  bottom: 8px;
+  right: 8px;
+  z-index: 3;
+}
+
+.dcui-logo {
+  width: 24px;
+  height: 24px;
+  opacity: 0.85;
+  transition: transform 0.2s ease;
+}
+
+.dcui-logo:hover {
+  transform: scale(1.1);
+  opacity: 1;
+}
+
+@media (max-width: 600px) {
+  .comic-card {
+    padding-bottom: 52px; /* Auf kleinen Bildschirmen mehr Luft */
+  }
+
+  .comic-title {
+    margin-bottom: 4px; /* Abstand zum Datum */
+  }
+
+  .comic-date {
+    margin-bottom: 12px; /* Abstand zum Logo */
   }
 
   .dcui-logo {
-    width: 24px;
-    height: 24px;
-    opacity: 0.85;
-    transition: transform 0.2s ease;
+    width: 20px;
+    height: 20px;
   }
 
-  .dcui-logo:hover {
-    transform: scale(1.1);
-    opacity: 1;
+  .dcui-link {
+    bottom: 6px;
+    right: 6px;
   }
+}
 
-  .comic-card {
-    position: relative;
-    padding-bottom: 36px; /* Mehr Platz unten für Logo */
-  }
-
-  @media (max-width: 600px) {
-    .comic-card {
-      padding-bottom: 40px; /* Extra Abstand unten für Logo auf Handy */
-    }
-
-    .comic-card .dcui-link {
-      bottom: 6px;
-      right: 6px;
-    }
-
-    .comic-card .dcui-logo {
-      width: 20px;
-      height: 20px;
-    }
-  }
     dialog {
       background: #1e1e1e;
       color: #fff;

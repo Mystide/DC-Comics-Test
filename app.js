@@ -64,10 +64,7 @@ function renderComics(search = "") {
   });
 
   
-    if (sortValue === "title-desc") return b.title.localeCompare(a.title, undefined, { numeric: true });
-    if (sortValue === "date-asc") return new Date(a.release_date) - new Date(b.release_date);
-    if (sortValue === "date-desc") return new Date(b.release_date) - new Date(a.release_date);
-    return 0;
+    
   });
 
   grid.innerHTML = "";

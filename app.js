@@ -56,14 +56,7 @@ function updateProgressDisplay() {
 
 function renderComics(search = "") {
   const grid = document.getElementById("comicGrid");
-
-  const cardMap = new Map();
-  grid.querySelectorAll(".comic-card").forEach(card => {
-    const id = card.dataset.id;
-    if (id) cardMap.set(id, card);
-  });
-
-  // grid.innerHTML = ""; // entfernt, um Animation zu ermöglichen
+  grid.innerHTML = "";
   const sortValue = document.getElementById("sortSelect").value;
   const filter = document.getElementById("readFilterSelect").value;
 
@@ -84,16 +77,10 @@ function renderComics(search = "") {
     return 0;
   });
 
-  const activeIds = new Set();
-
-for (const comic of filtered) {
-  const key = getStorageKey(comic);
-  activeIds.add(key);
-  let card = cardMap.get(key);
-  if (!card) {
-    card = document.createElement("div");
+  for (const comic of filtered) {
+    const card = document.createElement("div");
     card.className = "comic-card";
-    card.dataset.id = key;
+    if (comic.read) card.classList.add("read");
 
     const badge = document.createElement("div");
     badge.className = "read-badge";
@@ -119,28 +106,17 @@ for (const comic of filtered) {
     card.appendChild(date);
 
     card.addEventListener("click", () => {
+      const key = getStorageKey(comic);
       comic.read = !comic.read;
       readStatus[key] = comic.read;
       card.classList.toggle("read");
       updateProgressDisplay();
       saveReadStatus(readStatus);
     });
-  } else {
-    card.classList.toggle("read", comic.read);
-  }
 
-    if (grid.children[index] !== card) {
     grid.appendChild(card);
   }
-});
-
-for (const [id, card] of cardMap) {
-  if (!activeIds.has(id)) {
-    grid.removeChild(card);
-  }
-}
-
-updateProgressDisplay();
+  updateProgressDisplay();
 }
 
 async function loadComicData() {

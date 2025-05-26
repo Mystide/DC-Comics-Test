@@ -95,15 +95,42 @@ function renderComics(search = "") {
     coverWrapper.appendChild(img);
     card.appendChild(coverWrapper);
 
-    const title = document.createElement("div");
-    title.className = "comic-title";
-    title.textContent = comic.title;
-    card.appendChild(title);
+    if (comic.dcui_link) {
+  const linkWrapper = document.createElement("a");
+  linkWrapper.href = comic.dcui_link;
+  linkWrapper.target = "_blank";
+  linkWrapper.rel = "noopener noreferrer";
+  linkWrapper.className = "comic-meta-link";
+  linkWrapper.title = "Read on DC Universe Infinite";
 
-    const date = document.createElement("div");
-    date.className = "comic-date";
-    date.textContent = comic.release_date || "";
-    card.appendChild(date);
+  const title = document.createElement("div");
+  title.className = "comic-title";
+  title.textContent = comic.title;
+
+  const date = document.createElement("div");
+  date.className = "comic-date";
+  date.textContent = comic.release_date || "";
+
+  linkWrapper.appendChild(title);
+  linkWrapper.appendChild(date);
+  card.appendChild(linkWrapper);
+} else {
+  const metaWrapper = document.createElement("div");
+  metaWrapper.className = "comic-meta-link";
+
+  const title = document.createElement("div");
+  title.className = "comic-title";
+  title.textContent = comic.title;
+
+  const date = document.createElement("div");
+  date.className = "comic-date";
+  date.textContent = comic.release_date || "";
+
+  metaWrapper.appendChild(title);
+  metaWrapper.appendChild(date);
+  card.appendChild(metaWrapper);
+}
+
 
     card.addEventListener("click", () => {
       const key = getStorageKey(comic);

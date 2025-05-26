@@ -106,7 +106,7 @@ function renderComics(search = "") {
     card.appendChild(date);
 
     // DCUI-Logo (falls vorhanden)
-    if (comic.dcui) {
+    if (comic.dcui_link) {
       const dcuiLink = document.createElement("a");
       dcuiLink.href = comic.dcui;
       dcuiLink.target = "_blank";

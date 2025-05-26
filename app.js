@@ -106,9 +106,9 @@ function renderComics(search = "") {
     card.appendChild(date);
 
     // ✅ DCUI-Logo sichtbar & klickbar
-    if (comic.dcui) {
+    if (comic.dcui_link) {
       const dcuiLink = document.createElement("a");
-      dcuiLink.href = comic.dcui;
+      dcuiLink.href = comic.dcui_link;
       dcuiLink.target = "_blank";
       dcuiLink.className = "dcui-link";
 

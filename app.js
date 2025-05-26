@@ -113,7 +113,7 @@ function renderComics(search = "") {
       dcuiLink.className = "dcui-link";
 
       const dcuiImg = document.createElement("img");
-      dcuiImg.src = "img/dcui.png"; // ← passe Pfad an, falls nötig
+      dcuiImg.src = "bilder/dcui_logo.png"; // ← passe Pfad an, falls nötig
       dcuiImg.alt = "DC Universe Infinite";
       dcuiImg.className = "dcui-logo";
 

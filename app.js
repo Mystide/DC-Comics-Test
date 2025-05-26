@@ -129,7 +129,10 @@ for (const comic of filtered) {
     card.classList.toggle("read", comic.read);
   }
 
+  if (grid.children[filtered.indexOf(comic)] !== card) {
   grid.appendChild(card);
+}
+
 }
 
 // Entferne alte Cards, die nicht mehr angezeigt werden sollen

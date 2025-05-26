@@ -63,27 +63,13 @@ function renderComics(search = "") {
     if (id) cardMap.set(id, card);
   });
 
-  const sortValue = document.getElementById("sortSelect").value;
-  const filter = document.getElementById("readFilterSelect").value;
-
-  let filtered = comicData.filter((comic) => {
-    const matchesSearch = comic.title.toLowerCase().includes(search.toLowerCase());
-    const matchesRead =
-      filter === "all" ||
-      (filter === "read" && comic.read) ||
-      (filter === "unread" && !comic.read);
-    return matchesSearch && matchesRead;
-  });
-
-  filtered.sort((a, b) => {
-    if (sortValue === "title-asc") return a.title.localeCompare(b.title, undefined, { numeric: true });
+  
     if (sortValue === "title-desc") return b.title.localeCompare(a.title, undefined, { numeric: true });
     if (sortValue === "date-asc") return new Date(a.release_date) - new Date(b.release_date);
     if (sortValue === "date-desc") return new Date(b.release_date) - new Date(a.release_date);
     return 0;
   });
 
-  grid.innerHTML = "";
   grid.innerHTML = "";
   const sortValue = document.getElementById("sortSelect").value;
   const filter = document.getElementById("readFilterSelect").value;

@@ -49,10 +49,11 @@ async function saveReadStatus(status) {
 function updateProgressDisplay() {
   const total = comicData.length;
   const read = comicData.filter((c) => c.read).length;
-  const percent = total > 0 ? Math.round((read / total) * 100) : 0;
+  const percent = total > 0 ? ((read / total) * 100).toFixed(1) : "0.0";
   document.getElementById("progressText").textContent = `${read} / ${total} read (${percent}%)`;
   document.getElementById("progressBar").style.width = `${percent}%`;
 }
+
 
 function renderComics(search = "") {
   const grid = document.getElementById("comicGrid");

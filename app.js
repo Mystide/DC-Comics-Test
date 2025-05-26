@@ -69,9 +69,9 @@ function renderComics(search = "") {
     return matchesSearch && matchesRead;
   });
   
-    filtered.sort((a, b) => {
-  if (sortValue === "title-asc") return a.title.localeCompare(b.title, undefined, { numeric: true });
-  if (sortValue === "title-desc") return b.title.localeCompare(a.title, undefined, { numeric: true });
+  filtered.sort((a, b) => {
+    if (sortValue === "title-asc") return a.title.localeCompare(b.title, undefined, { numeric: true });
+    if (sortValue === "title-desc") return b.title.localeCompare(a.title, undefined, { numeric: true });
     if (sortValue === "date-asc") return new Date(a.release_date) - new Date(b.release_date);
     if (sortValue === "date-desc") return new Date(b.release_date) - new Date(a.release_date);
     return 0;
@@ -104,6 +104,22 @@ function renderComics(search = "") {
     date.className = "comic-date";
     date.textContent = comic.release_date || "";
     card.appendChild(date);
+
+    // DCUI-Logo (falls vorhanden)
+    if (comic.dcui) {
+      const dcuiLink = document.createElement("a");
+      dcuiLink.href = comic.dcui;
+      dcuiLink.target = "_blank";
+      dcuiLink.className = "dcui-link";
+
+      const dcuiImg = document.createElement("img");
+      dcuiImg.src = "img/dcui.png"; // lokaler Pfad zum Logo
+      dcuiImg.alt = "DC Universe Infinite";
+      dcuiImg.className = "dcui-logo";
+
+      dcuiLink.appendChild(dcuiImg);
+      card.appendChild(dcuiLink);
+    }
 
     card.addEventListener("click", () => {
       const key = getStorageKey(comic);
@@ -162,15 +178,15 @@ async function init() {
   });
 
   document.getElementById("columnSelect").addEventListener("change", (e) => {
-  const grid = document.getElementById("comicGrid");
-  grid.className = "comic-grid"; // Reset Klassen
-  const val = e.target.value;
-  if (["2", "3", "4", "5"].includes(val)) {
-    grid.classList.add("columns-" + val);
-  } else {
-    grid.classList.add("columns-auto");
-  }
-});
+    const grid = document.getElementById("comicGrid");
+    grid.className = "comic-grid"; // Reset Klassen
+    const val = e.target.value;
+    if (["2", "3", "4", "5"].includes(val)) {
+      grid.classList.add("columns-" + val);
+    } else {
+      grid.classList.add("columns-auto");
+    }
+  });
 
   document.getElementById("readFilterSelect").addEventListener("change", () => {
     renderComics(document.getElementById("searchInput").value);

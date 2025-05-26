@@ -7,7 +7,7 @@ if (gistIdFromURL) localStorage.setItem("gistId", gistIdFromURL);
 const GITHUB_TOKEN = localStorage.getItem("gistToken");
 const GIST_ID = localStorage.getItem("gistId") || "f4ac4f63f8f150bde113a52246bdea28";
 
-let manifest = [];
+let manifest = []; 
 let comicData = [];
 let readStatus = {};
 
